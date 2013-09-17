@@ -16,16 +16,16 @@
             shift: function shift() {}      // 删除数组的第一个元素并返回, 该方法会改变数组长度.
             unshift: function unshift() {}  // 在数组的开始位置添加一个或者多个成员,并返回新的数组成员个数.
             slice: function slice() {}      // 将原数组中的一部分元素拷贝到一个新数组,拷贝规则为"一级深拷贝".
-            splice: function splice() {}    // 修改数组内容, 删除一些旧元素, 用一些新元素.
+            splice: function splice() {}    // 修改数组内容, 删除一些旧元素, 用一些新元素替换.
             reverse: function reverse() {}  // 将数组倒序排列.
             sort: function sort() {}        // 根据指定的比较函数排序.
-            indexOf: function indexOf() {}
-            lastIndexOf: function lastIndexOf() {}
-            forEach: function forEach() {}
-            map: function map() {}
-            filter: function filter() {}
-            every: function every() {}
-            some: function some() {}
+            indexOf: function indexOf() {}  // 查找数组中指定元素第一次出现的位置,没有则返回-1.
+            lastIndexOf: function lastIndexOf() {}    // 和indexOf类似,不过从末尾开始匹配.
+            forEach: function forEach() {}  // 为每个数组元素执行一次指定的函数.
+            map: function map() {}          // 返回一个由原数组中的每个元素调用一个指定方法后的返回值组成的新数组.
+            filter: function filter() {}    // 返回过滤后的新数组,用法和 map 类似.
+            every: function every() {}      // 如果每一项元素都符合条件,则返回 true.
+            some: function some() {}        // 如果某一项元素符合条件,则返回 true.
             reduce: function reduce() {}
             reduceRight: function reduceRight() {}
             toLocaleString: function toLocaleString() {}
@@ -156,7 +156,7 @@
 
 ### splice ###
 
-    // 修改数组内容,删除一些旧元素, 用一些新元素.
+    // 修改数组内容,删除一些旧元素, 用一些新元素替换.
     // @param index
     //     开始修改数组内容的起始位置,
     //     如果大于数组长度则不删除内容(相当于 push),
@@ -200,15 +200,152 @@
     //     console.log(numbers);    // output: [5, 4, 3, 2, 1]
     array.sort([compareFunction])
 
+### indexOf ###
+
+    // 查找数组中指定元素第一次出现的位置,没有则返回-1.
+    // @param searchElement 需要查找的元素.
+    // @param fromIndex 默认值为0.
+    // @return 返回第一次匹配到的索引值,从0开始计数,没有匹配成功则返回-1.
+    // @since ES5
+    // @usage
+    //     var a = ['a', 'b', 'a', 'b', 'a'];
+    //     console.log(a.indexOf('b'));    // output: 1
+    //     console.log(a.indexOf('b', 2));    // output: 3
+    //     console.log(a.indexOf('z'));    // output: -1
+    array.indexOf(searchElement[, fromIndex])
+
+
+    // example: finding all the occurrences of an element
+    var indices = [];
+    var idx = array.indexOf(element);
+    while (idx != -1) {
+        indices.push(idx);
+        idx = array.indexOf(element, idx + 1);
+    }
+
+
+    // es5
+    if (!Array.prototype.indexOf) {
+      Array.prototype.indexOf = function (searchElement /*, fromIndex */ ) {
+        'use strict';
+        if (this == null) {
+          throw new TypeError();
+        }
+        var n, k, t = Object(this),
+            len = t.length >>> 0;
+
+        if (len === 0) {
+          return -1;
+        }
+        n = 0;
+        if (arguments.length > 1) {
+          n = Number(arguments[1]);
+          if (n != n) { // shortcut for verifying if it's NaN
+            n = 0;
+          } else if (n != 0 && n != Infinity && n != -Infinity) {
+            n = (n > 0 || -1) * Math.floor(Math.abs(n));
+          }
+        }
+        if (n >= len) {
+          return -1;
+        }
+        for (k = n >= 0 ? n : Math.max(len - Math.abs(n), 0); k < len; k++) {
+          if (k in t && t[k] === searchElement) {
+            return k;
+          }
+        }
+        return -1;
+      };
+    }
+
+### lastIndexOf ###
+
+    // 和indexOf类似,不过从末尾开始匹配
+    // @param fromIndex 默认值为数组长度.
+    // @since ES5
+    // @usage
+    //     var a = ['a', 'b', 'c', 'd', 'a', 'b'];
+    //     console.log(a.lastIndexOf('b'));    // output: 5
+    //     console.log(a.lastIndexOf('b', 4));    // output: 1
+    //     console.log(a.lastIndexOf('z'));    // output: -1
+    array.lastIndexOf(searchElement[, fromIndex])
+
+
+    // example: finding all the occurrences of an element
+    var indices = [];
+    var idx = array.lastIndexOf(element);
+
+    while (idx != -1) {
+      indices.push(idx);
+      idx = (idx > 0 ? array.lastIndexOf(element, idx - 1) : -1);
+    }
+
+
+    // es5
+    if (!Array.prototype.lastIndexOf) {
+      Array.prototype.lastIndexOf = function(searchElement /*, fromIndex*/) {
+        'use strict';
+
+        if (this == null) {
+          throw new TypeError();
+        }
+
+        var n, k,
+            t = Object(this),
+            len = t.length >>> 0;
+        if (len === 0) {
+          return -1;
+        }
+
+        n = len;
+        if (arguments.length > 1) {
+          n = Number(arguments[1]);
+          if (n != n) {
+            n = 0;
+          }
+          else if (n != 0 && n != (1 / 0) && n != -(1 / 0)) {
+            n = (n > 0 || -1) * Math.floor(Math.abs(n));
+          }
+        }
+
+        for (k = n >= 0
+              ? Math.min(n, len - 1)
+              : len - Math.abs(n); k >= 0; k--) {
+          if (k in t && t[k] === searchElement) {
+            return k;
+          }
+        }
+        return -1;
+      };
+    }
+
 ### forEach ###
+
+当一个数组运行 forEach 方法时,数组的长度在调用第一次 callback 方法之前就已经确定.在 forEach 方法整个运行过程中,不管 callback 函数中的操作给原数组是添加还是删除了元素. forEach 方法都不会知道.如果数组元素增加,则新增加的元素不会被 forEach 遍历到,如果数组元素减少.则 forEach 方法还会认为原数组的长度没变,从而导致数组访问越界.
 
     // 为每个数组元素执行一次指定的函数.
     // @description 
     //     forEach 方法为数组中的每个有值的元素执行一次给定的callback函数,
     //     只有在那些有值的索引上才会调用callback函数,那些被删除掉的索引或
     //     者从未赋值过的索引将会被跳过.
+    // @param callback
+    //     callback(element, index, array)
+    // @param thisArg
+    //     在执行callback函数时指定的this值.
+    //     在非严格模式下, thisArg如果没有传参,则表示 window 对象,
+    //     在严格模式下, 必须给thisArg传参.?
     // @since ES5
     array.forEach(callback[, thisArg])
+
+
+    // example
+    [2, 5, 9].forEach(function(element, index, array) {
+        console.log('array[' + index + '] = ' + element);
+    });
+    // output:
+    // array[0] = 2
+    // array[1] = 5
+    // array[2] = 9
 
 
     // es5-shim
@@ -280,6 +417,193 @@
       };
     }
 
+
+### map ###
+
+当一个数组运行 map 方法时,数组的长度在调用第一次 callback 方法之前就已经确定.在 map 方法整个运行过程中,不管 callback 函数中的操作给原数组是添加还是删除了元素. map 方法都不会知道.如果数组元素增加,则新增加的元素不会被 map 遍历到,如果数组元素减少.则 map 方法还会认为原数组的长度没变,从而导致数组访问越界.
+
+    // 返回一个由原数组中的每个元素调用一个指定方法后的返回值组成的新数组.
+    // @description
+    //     map 方法会给原数组中的每个元素(必须有值)都调用一次 callback 函数.
+    //     callback 每次执行后的返回值组合起来形成一个新数组. 
+    //     callback函数只会在有值的索引上被调用; 
+    //     那些从来没被赋过值或者使用delete删除的索引则不会被调用.
+    //     
+    //     callback 函数会被自动传入三个参数: 数组元素, 元素索引,原数组本身.
+    // @param thisArg
+    //     如果thisArg参数有值,则每次callback函数被调用的时候,this都会指向thisArg参数上的这个对象.
+    //     如果省略了thisArg参数,或者赋值为null, 则this指向全局对象window.?
+    // @since ES5
+    // @usage
+    //     var roots = [1, 4, 9].map(Math.sqrt);    // result: [1, 2, 3]
+    array.map(callback[, thisArg])
+
+    // 下面代码的运行结果是什么,如何修正?
+    ["1", "2", "3"].map(parseInt);    // [1, NaN, NaN]
+
+    // es5 shim
+    // 实现 ECMA-262, Edition 5, 15.4.4.19
+    // 参考: http://es5.github.com/#x15.4.4.19
+    if (!Array.prototype.map) {
+      Array.prototype.map = function(callback, thisArg) {
+
+        var T, A, k;
+
+        if (this == null) {
+          throw new TypeError(" this is null or not defined");
+        }
+
+        // 1. 将O赋值为调用map方法的数组.
+        var O = Object(this);
+
+        // 2.将len赋值为数组O的长度.
+        var len = O.length >>> 0;
+
+        // 4.如果callback不是函数,则抛出TypeError异常.
+        if ({}.toString.call(callback) != "[object Function]") {
+          throw new TypeError(callback + " is not a function");
+        }
+
+        // 5. 如果参数thisArg有值,则将T赋值为thisArg;否则T为undefined.
+        if (thisArg) {
+          T = thisArg;
+        }
+
+        // 6. 创建新数组A,长度为原数组O长度len
+        A = new Array(len);
+
+        // 7. 将k赋值为0
+        k = 0;
+
+        // 8. 当 k < len 时,执行循环.
+        while(k < len) {
+
+          var kValue, mappedValue;
+
+          //遍历O,k为原数组索引
+          if (k in O) {
+
+            //kValue为索引k对应的值.
+            kValue = O[ k ];
+
+            // 执行callback,this指向T,参数有三个.分别是kValue:值,k:索引,O:原数组.
+            mappedValue = callback.call(T, kValue, k, O);
+
+            // 返回值添加到新书组A中.
+            A[ k ] = mappedValue;
+          }
+          // k自增1
+          k++;
+        }
+
+        // 9. 返回新数组A
+        return A;
+      };      
+    }
+
+### filter ###
+
+    // 返回过滤后的新数组,用法和 map 类似.
+    // @since ES5
+    array.filter(callback[, thisObject])
+
+
+    // es5 shim
+    if (!Array.prototype.filter) {
+      Array.prototype.filter = function(fun /*, thisp*/) {
+        'use strict';
+
+        if (!this) {
+          throw new TypeError();
+        }
+
+        var objects = Object(this);
+        var len = objects.length >>> 0;
+        if (typeof fun !== 'function') {
+          throw new TypeError();
+        }
+
+        var res = [];
+        var thisp = arguments[1];
+        for (var i in objects) {
+          if (objects.hasOwnProperty(i)) {
+            if (fun.call(thisp, objects[i], i, objects)) {
+              res.push(objects[i]);
+            }
+          }
+        }
+
+        return res;
+      };
+    }
+
+### every ###
+
+    // 如果每一项元素都符合条件,则返回 true.
+    // @since ES5
+    array.every(callback[, thisObject])
+
+
+    // es5-shim
+    if (!Array.prototype.every) {
+      Array.prototype.every = function(fun /*, thisp */) {
+        'use strict';
+        var t, len, i, thisp;
+
+        if (this == null) {
+          throw new TypeError();
+        }
+
+        t = Object(this);
+        len = t.length >>> 0;
+        if (typeof fun !== 'function') {
+            throw new TypeError();
+        }
+
+        thisp = arguments[1];
+        for (i = 0; i < len; i++) {
+          if (i in t && !fun.call(thisp, t[i], i, t)) {
+            return false;
+          }
+        }
+
+        return true;
+      };
+    }
+
+### some ###
+
+    // 如果某一项元素符合条件,则返回 true.
+    // @since ES5
+    array.some(callback[, thisObject])
+
+
+    // es5-shim
+    if (!Array.prototype.some) {
+      Array.prototype.some = function(fun /*, thisp */) {
+        'use strict';
+
+        if (this == null) {
+          throw new TypeError();
+        }
+
+        var thisp, i,
+            t = Object(this),
+            len = t.length >>> 0;
+        if (typeof fun !== 'function') {
+          throw new TypeError();
+        }
+
+        thisp = arguments[1];
+        for (i = 0; i < len; i++) {
+          if (i in t && fun.call(thisp, t[i], i, t)) {
+            return true;
+          }
+        }
+
+        return false;
+      };
+    }
 
 ## 类数组对象 ##
 
