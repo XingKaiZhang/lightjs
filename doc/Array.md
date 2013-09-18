@@ -1,4 +1,4 @@
-# Array #
+# Array Overview #
 
     function Array() {}
         arguments: null
@@ -26,8 +26,8 @@
             filter: function filter() {}    // 返回过滤后的新数组,用法和 map 类似.
             every: function every() {}      // 如果每一项元素都符合条件,则返回 true.
             some: function some() {}        // 如果某一项元素符合条件,则返回 true.
-            reduce: function reduce() {}
-            reduceRight: function reduceRight() {}
+            reduce: function reduce() {}    // 使用一个累加器函数,对数组中的每个元素从左到右进行计算,减少到单一值并返回.
+            reduceRight: function reduceRight() {}    // 和reduce类似,不过从右到左.
             toLocaleString: function toLocaleString() {}
             toString: function toString() {}
             __proto__: Object
@@ -503,6 +503,8 @@
 
 ### filter ###
 
+当一个数组运行 filter 方法时,数组的长度在调用第一次 callback 方法之前就已经确定.在 filter 方法整个运行过程中,不管 callback 函数中的操作给原数组是添加还是删除了元素. filter 方法都不会知道.如果数组元素增加,则新增加的元素不会被 filter 遍历到,如果数组元素减少.则 filter 方法还会认为原数组的长度没变,从而导致数组访问越界.
+
     // 返回过滤后的新数组,用法和 map 类似.
     // @since ES5
     array.filter(callback[, thisObject])
@@ -539,6 +541,8 @@
 
 ### every ###
 
+当一个数组运行 every 方法时,数组的长度在调用第一次 callback 方法之前就已经确定.在 every 方法整个运行过程中,不管 callback 函数中的操作给原数组是添加还是删除了元素. every 方法都不会知道.如果数组元素增加,则新增加的元素不会被 every 遍历到,如果数组元素减少.则 every 方法还会认为原数组的长度没变,从而导致数组访问越界.
+
     // 如果每一项元素都符合条件,则返回 true.
     // @since ES5
     array.every(callback[, thisObject])
@@ -573,6 +577,8 @@
 
 ### some ###
 
+当一个数组运行 some 方法时,数组的长度在调用第一次 callback 方法之前就已经确定.在 some 方法整个运行过程中,不管 callback 函数中的操作给原数组是添加还是删除了元素. some 方法都不会知道.如果数组元素增加,则新增加的元素不会被 some 遍历到,如果数组元素减少.则 some 方法还会认为原数组的长度没变,从而导致数组访问越界.
+
     // 如果某一项元素符合条件,则返回 true.
     // @since ES5
     array.some(callback[, thisObject])
@@ -605,7 +611,89 @@
       };
     }
 
+### reduce ###
+
+当一个数组运行 reduce 方法时,数组的长度在调用第一次 callback 方法之前就已经确定.在 reduce 方法整个运行过程中,不管 callback 函数中的操作给原数组是添加还是删除了元素. reduce 方法都不会知道.如果数组元素增加,则新增加的元素不会被 reduce 遍历到,如果数组元素减少.则 reduce 方法还会认为原数组的长度没变,从而导致数组访问越界.
+
+    // 使用一个累加器函数,对数组中的每个元素从左到右进行计算,减少到单一值并返回.
+    // @param callback
+    //     callback(previousValue, currentValue, index, array)
+    //     index为currentValue的索引
+    // @param initialValue
+    //     第一次调用callback时的第一个参数.
+    //     如果提供initialValue,则第一次执行callback时,previousValue为initialValue,currentValue为array的第一个元素.
+    //     如果没有提供initialValue,则第一次执行callback时,previousValue和currentValue分别为array的第一个和第二个元素.
+    // @since ES5
+    array.reduce(callback[, initialValue])
+
+
+    // example: Sum up all values within an array
+    var total = [0, 1, 2, 3].reduce(function(a, b) {
+        return a + b;
+    });
+    // result: 6
+
+    // example: Flatten an array of arrays
+    var flattened = [[0, 1], [2, 3], [4, 5]].reduce(function(a, b) {
+        return a.concat(b);
+    });
+
+    // es5-shim
+    if ('function' !== typeof Array.prototype.reduce) {
+      Array.prototype.reduce = function(callback, opt_initialValue){
+        'use strict';
+        if (null === this || 'undefined' === typeof this) {
+          // At the moment all modern browsers, that support strict mode, have
+          // native implementation of Array.prototype.reduce. For instance, IE8
+          // does not support strict mode, so this check is actually useless.
+          throw new TypeError(
+              'Array.prototype.reduce called on null or undefined');
+        }
+        if ('function' !== typeof callback) {
+          throw new TypeError(callback + ' is not a function');
+        }
+        var index, value,
+            length = this.length >>> 0,
+            isValueSet = false;
+        if (1 < arguments.length) {
+          value = opt_initialValue;
+          isValueSet = true;
+        }
+        for (index = 0; length > index; ++index) {
+          if (this.hasOwnProperty(index)) {
+            if (isValueSet) {
+              value = callback(value, this[index], index, this);
+            }
+            else {
+              value = this[index];
+              isValueSet = true;
+            }
+          }
+        }
+        if (!isValueSet) {
+          throw new TypeError('Reduce of empty array with no initial value');
+        }
+        return value;
+      };
+    }
+
+### reduceRight ###
+
+当一个数组运行 reduceRight 方法时,数组的长度在调用第一次 callback 方法之前就已经确定.在 reduceRight 方法整个运行过程中,不管 callback 函数中的操作给原数组是添加还是删除了元素. reduceRight 方法都不会知道.如果数组元素增加,则新增加的元素不会被 reduceRight 遍历到,如果数组元素减少.则 reduceRight 方法还会认为原数组的长度没变,从而导致数组访问越界.
+
+    // 和reduce类似,不过从右到左.
+    // @since ES5
+    array.reduceRight(callback[, initialValue])
+
 ## 类数组对象 ##
+
+有一些 JavaScript 对象, 比如使用 `document.getElementByTagName` 返回的 `NodeList` 或者函数内的 `arguments`, 表现的很像数组但却不能共享所有的数组方法. 比如 `arguments` 对象有一个 `length` 属性但不能调用 `forEach` 方法.
+
+### 数组泛化 ###
+
+在 JavaScript1.6中引入了 JavaScript 泛化的特性，可以参考这里 [Javascript 中的 Generics](http://www.gracecode.com/posts/2197.html)
+
+### 借助 call 和 apply ###
 
 使用 push/pop/unshift/shift 操作类数组对象
 
@@ -636,9 +724,31 @@ slice 方法可以用来将一个类数组(Array-like)对象/集合转换成一�
 
     var list1 = list(1, 2, 3); // [1, 2, 3]
 
+## 列表解析(Array comprehensions)
+
+常常用来代替 `map()` 和 `filter()`
+
+    var numbers = [1, 2, 3, 4];
+    var doubled = [i * 2 for (i of numbers)];
+    alert(doubled); // Alerts 2,4,6,8
+
+这和下面的使用 `map()` 的代码是等效的:
+
+    var doubled = numbers.map(function(i){return i * 2;});
+
+使用列表解析完成 map 和 filter 的结合:
+
+    var numbers = [1, 2, 3, 21, 22, 30];
+    var doubledEvens = [i * 2 for (i of numbers) if (i % 2 === 0)];
+    alert(doubledEvens); // Alerts 4,44,60
+
+列表解析不仅仅可以用在数组上, 也可以用在[迭代器和生成器](https://developer.mozilla.org/zh-CN/docs/JavaScript/Guide/Iterators_and_Generators):
+
+    var str = 'abcdef';
+    var consonantsOnlyStr = [c for (c of str) if (!(/[aeiouAEIOU]/).test(c))  ].join(''); // 'bcdf'
+    var interpolatedZeros = [c+'0' for (c of str) ].join(''); // 'a0b0c0d0e0f0'
 
 ## Others ##
-
 
 通过修改 length 可以添加元素或者删除元素。
 
